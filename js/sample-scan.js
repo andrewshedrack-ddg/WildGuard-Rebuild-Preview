@@ -34,8 +34,15 @@
           var stillSpinning = loading && loading.style.display !== 'none' &&
             (!result || result.style.display === 'none');
           if (stillSpinning) {
-            loading.style.display = 'none';
-            setStatus('Scan timed out after 30 seconds with no result. Please close this tab, reopen the scan page, and try again.');
+            // 2026-10-28 fix: show the message in the visible loading
+            // panel. wgScanStatus lives inside the input view, which
+            // showResultView hides, so a message set only there is
+            // invisible during a scan.
+            var loadingText = document.getElementById('loadingText');
+            if (loadingText) {
+              loadingText.textContent = 'Scan timed out after 30 seconds with no result. Please click Scan another and try again.';
+            }
+            setStatus('Scan timed out after 30 seconds with no result. Please click Scan another and try again.');
           }
         }, 30000);
         WildlifeScan.lastInputSource = { type: 'sample', name: name.toLowerCase() };

@@ -1534,6 +1534,33 @@ const WildlifeScan = {
 
   // Real AI: TensorFlow.js MobileNet classification + filename fallback.
   // Reports EVERYTHING detected in the scene (living + non-living), with details.
+  // 2026-10-28 fix: never feed the model the original photo. The sample
+  // lion is 2592x3888; MobileNet only needs 224x224, and asking TF.js to
+  // decode and resize a multi-megapixel image on a phone or a headless
+  // browser is what hangs inference with no timeout and no error.
+  downscaleForModel(imgEl) {
+    try {
+      if (!imgEl || !imgEl.naturalWidth) return imgEl;
+      const canvas = document.createElement("canvas");
+      canvas.width = 224;
+      canvas.height = 224;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(imgEl, 0, 0, 224, 224);
+      return canvas;
+    } catch (e) {
+      return imgEl;
+    }
+  },
+
+  // Race a promise against a timeout; on timeout resolve to fallback
+  // instead of hanging the whole scan forever.
+  withTimeout(promise, ms, fallback) {
+    return Promise.race([
+      Promise.resolve(promise),
+      new Promise((resolve) => setTimeout(() => resolve(fallback), ms))
+    ]);
+  },
+
   async simulateScanAsync(input) {
     const speciesKeys = Object.keys(this.speciesDB);
     let bestMatch = null;
@@ -1570,7 +1597,8 @@ const WildlifeScan = {
       // trained model for a real wildlife identification.
       if (!bestMatch && typeof WildGuardAI !== "undefined" && WildGuardAI.isReady()) {
         try {
-          trainedPick = await WildGuardAI.topPick(this.els.previewImg);
+          const modelInput = this.downscaleForModel(this.els.previewImg);
+          trainedPick = await this.withTimeout(WildGuardAI.topPick(modelInput), 20000, null);
         } catch (e) {}
         if (trainedPick && this.speciesDB[trainedPick.key]) {
           bestMatch = trainedPick.key;
@@ -1583,7 +1611,8 @@ const WildlifeScan = {
     // Step 2: TensorFlow.js classification if the trained tiers produced nothing.
     if (!bestMatch && this.tfModel && this.els.previewImg) {
       try {
-        predictions = await this.tfModel.classify(this.els.previewImg, 5);
+        const modelInput = this.downscaleForModel(this.els.previewImg);
+        predictions = await this.withTimeout(this.tfModel.classify(modelInput, 5), 20000, []);
         console.log("AI Predictions:", predictions);
       } catch (err) {
         console.error("AI classification error:", err);
