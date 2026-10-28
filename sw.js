@@ -1,6 +1,6 @@
 // Service Worker for WildGuard Society - Offline support
 // Served at the root of wildguard.live (2026-10-28 rebuild).
-const CACHE_NAME = 'wildguard-v6';
+const CACHE_NAME = 'wildguard-v7';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
@@ -38,18 +38,20 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 2026-10-28 fix: network-first, cache as fallback. The old cache-first
+// strategy meant a code update was never served until the service worker
+// version changed AND the visitor loaded the site a second time — every
+// preview retest kept running stale scanner code. Network-first picks up
+// a new deploy on the next load; the cache only covers offline visits.
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) { return response; }
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.ok) {
-          const copy = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-        }
-        return networkResponse;
-      }).catch(() => caches.match('/Wildlife-website/index.html'));
-    })
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.ok) {
+        const copy = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      }
+      return networkResponse;
+    }).catch(() => caches.match(event.request))
   );
 });
