@@ -309,6 +309,8 @@ const WildlifeScan = {
         this.els.loadingText.textContent = "Loading AI model...";
         this.tfModel = await mobilenet.load({ version: 2, alpha: 1.0 });
         console.log("MobileNet loaded");
+        this._dbgStart = Date.now();
+        this.dbg("INIT: MobileNet loaded");
         // On-device transfer-learning wildlife classifier (WildGuardAI):
         // loads the cached trained model, or trains in the background on real
         // Wikipedia/Wikimedia wildlife photos.
@@ -330,6 +332,8 @@ const WildlifeScan = {
         }
       } catch (err) {
         console.warn("Model load failed:", err);
+        this._dbgStart = Date.now();
+        this.dbg("INIT: MobileNet load FAILED: " + (err && err.message ? err.message : err));
         this.setModelStatus("unavailable");
       }
     }
@@ -1120,6 +1124,7 @@ const WildlifeScan = {
     const confidencePercent = confidence || 75;
     this.currentResult = { nonLiving: true, label: detectedLabel, confidence: confidencePercent };
 
+    this.dbg("RESULT: rendering species=" + species.name + " confidence=" + confidence);
     this.els.loadingState.style.display = "none";
     this.els.resultState.style.display = "block";
     this.els.resultCategory.textContent = "Non-Living / Scene";
@@ -1561,6 +1566,23 @@ const WildlifeScan = {
     ]);
   },
 
+  // 2026-10-28 debug log: visible step-by-step trace so a stalled scan
+  // can be diagnosed without a browser console. Temporary diagnostic —
+  // the panel stays on the preview only until the stall is understood.
+  dbg(msg) {
+    try {
+      const t = this._dbgStart ? ((Date.now() - this._dbgStart) / 1000).toFixed(1) + "s" : "0.0s";
+      const line = "[" + t + "] " + msg;
+      console.log("[WG-DEBUG] " + line);
+      const box = document.getElementById("wgScanDebug");
+      if (box) {
+        if (box.textContent.indexOf("steps will appear") === 0) box.textContent = "";
+        box.textContent += line + "\n";
+        box.scrollTop = box.scrollHeight;
+      }
+    } catch (e) {}
+  },
+
   async simulateScanAsync(input) {
     const speciesKeys = Object.keys(this.speciesDB);
     let bestMatch = null;
@@ -1574,12 +1596,15 @@ const WildlifeScan = {
     // Step 1: Tier-1 real cloud vision AI via the Flask backend (if deployed).
     // Tier-2: on-device transfer-learning wildlife classifier (WildGuardAI).
     // Tier-3: generic MobileNet ImageNet labels + filename keywords.
+    this._dbgStart = Date.now();
+    this.dbg("SCAN START: image=" + (this.els.previewImg && this.els.previewImg.src ? this.els.previewImg.src.split("/").pop() : "none") + " tfModel=" + !!this.tfModel + " WildGuardAI ready=" + (typeof WildGuardAI !== "undefined" ? WildGuardAI.isReady() : "no-ai"));
     this.els.loadingText.textContent = "Running AI vision on the image...";
     let cloudResult = null;
     let trainedPick = null;
     if (this.els.previewImg && this.els.previewImg.src) {
       cloudResult = await this.cloudScan(this.els.previewImg.src);
       cloudAttempted = true;
+      this.dbg("CLOUD: done available=" + !!(cloudResult && cloudResult.available));
       if (cloudResult && cloudResult.available && cloudResult.tags && cloudResult.tags.length) {
         const cloudMatches = this.tagsToSpecies(cloudResult.tags);
         if (cloudMatches.length) {
@@ -1588,6 +1613,7 @@ const WildlifeScan = {
           aiLabel = cloudResult.caption || "";
         }
       } else if (cloudResult && !cloudResult.available) {
+        this.dbg("CLOUD: unavailable (" + (cloudResult.message || cloudResult.reason) + ")");
         // Cloud AI unavailable — honest fallback messaging
         cloudFallbackReason = cloudResult.message || cloudResult.reason;
         this.els.loadingText.textContent = "Cloud AI unavailable — using on-device model...";
@@ -1598,8 +1624,10 @@ const WildlifeScan = {
       if (!bestMatch && typeof WildGuardAI !== "undefined" && WildGuardAI.isReady()) {
         try {
           const modelInput = this.downscaleForModel(this.els.previewImg);
+          this.dbg("TRAINED: topPick start");
           trainedPick = await this.withTimeout(WildGuardAI.topPick(modelInput), 20000, null);
-        } catch (e) {}
+          this.dbg("TRAINED: done pick=" + (trainedPick ? trainedPick.key + " score=" + trainedPick.score : "none (timed out or no match)"));
+        } catch (e) { this.dbg("TRAINED: ERROR " + (e && e.message ? e.message : e)); }
         if (trainedPick && this.speciesDB[trainedPick.key]) {
           bestMatch = trainedPick.key;
           aiConfidence = Math.round(trainedPick.score * 100);
@@ -1612,9 +1640,12 @@ const WildlifeScan = {
     if (!bestMatch && this.tfModel && this.els.previewImg) {
       try {
         const modelInput = this.downscaleForModel(this.els.previewImg);
+        this.dbg("MOBILENET: classify start");
         predictions = await this.withTimeout(this.tfModel.classify(modelInput, 5), 20000, []);
+        this.dbg("MOBILENET: done predictions=" + (predictions ? predictions.length : 0) + (predictions && predictions[0] ? " top=" + predictions[0].className + " prob=" + predictions[0].probability : ""));
         console.log("AI Predictions:", predictions);
       } catch (err) {
+        this.dbg("MOBILENET: ERROR " + (err && err.message ? err.message : err));
         console.error("AI classification error:", err);
       }
     }
@@ -1686,11 +1717,13 @@ const WildlifeScan = {
         this.showNonLivingResult(nonLiving[0].label, nonLiving[0].confidence);
         this.renderSceneAnalysis(detections, null);
       } else {
+        this.dbg("RESULT: unidentified (no confident match)");
         this.showUnidentifiedResult(detections);
       }
       return;
     }
 
+    this.dbg("MATCH: bestMatch=" + bestMatch + " detections=" + detections.length + " primary=" + (primary ? primary.key : "none"));
     const species = this.speciesDB[bestMatch];
     // Honest confidence: use actual model scores, not fabricated randomness.
     let confidence;

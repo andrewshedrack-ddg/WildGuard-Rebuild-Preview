@@ -48,6 +48,7 @@
         WildlifeScan.lastInputSource = { type: 'sample', name: name.toLowerCase() };
         WildlifeScan.showResultView();
         WildlifeScan.els.previewImg.onload = function () {
+          if (WildlifeScan.dbg) WildlifeScan.dbg("SAMPLE: photo loaded, starting simulate");
           try {
             var r = WildlifeScan.simulateScanAsync(WildlifeScan.els.previewImg.src);
             if (r && r.catch) {
