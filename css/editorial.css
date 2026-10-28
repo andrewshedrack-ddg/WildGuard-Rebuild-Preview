@@ -1,0 +1,336 @@
+/* ============================================================
+   WildGuard Society — Editorial layer (2026-10-28 rebuild)
+   National Geographic / Kenya Wildlife Service vibe.
+   This file is layered AFTER all existing stylesheets, so it
+   overrides the old look without deleting it. To revert, remove
+   the single <link> to this file from each page.
+   Palette: paper #FDF8EE, ink #111111, NatGeo yellow #FFCC00,
+   deep forest green #0B3D2E (KWS-style official sections).
+   ============================================================ */
+
+:root {
+  --wg-paper: #FDF8EE;
+  --wg-paper-2: #FFFFFF;
+  --wg-ink: #111111;
+  --wg-ink-soft: #3A3A30;
+  --wg-yellow: #FFCC00;
+  --wg-forest: #0B3D2E;
+  --wg-forest-2: #143D2A;
+  --wg-line: #D8D2BE;
+}
+
+/* ---- Base paper look (light mode, and the new default) ---- */
+body {
+  background: var(--wg-paper) !important;
+  color: var(--wg-ink) !important;
+}
+
+main, .content-overlay, .section {
+  background: transparent !important;
+  backdrop-filter: none !important;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  color: var(--wg-ink);
+  letter-spacing: -0.01em;
+}
+
+p, li, label, .card-body p {
+  color: var(--wg-ink-soft);
+}
+
+/* ---- Header / footer: official deep forest green ---- */
+.site-header {
+  background: var(--wg-forest) !important;
+  border-bottom: 4px solid var(--wg-yellow);
+}
+.site-header .logo-text,
+.site-header .desktop-nav a,
+.site-header .lang-toggle,
+.site-header .btn-signin {
+  color: #FDF8EE !important;
+}
+.site-header .desktop-nav {
+  background: transparent !important;
+  border: 0 !important;
+}
+.site-header .desktop-nav a.active,
+.site-header .desktop-nav a:hover {
+  background: rgba(255, 204, 0, 0.18) !important;
+  color: var(--wg-yellow) !important;
+}
+.site-footer {
+  background: var(--wg-forest) !important;
+  color: #FDF8EE !important;
+  border-top: 6px solid var(--wg-yellow);
+}
+.site-footer h3, .site-footer h4, .site-footer p, .site-footer a {
+  color: #FDF8EE !important;
+}
+
+/* ---- Editorial hero (homepage) ---- */
+.hero.wg-hero-editorial {
+  min-height: 78vh;
+  align-items: flex-end;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 6rem 2rem 3.5rem;
+  background:
+    linear-gradient(to top, rgba(11, 61, 46, 0.92) 0%, rgba(11, 61, 46, 0.45) 55%, rgba(11, 61, 46, 0.15) 100%),
+    url('../assets/images/lion.jpg') center / cover no-repeat;
+}
+.hero.wg-hero-editorial .hero-content {
+  max-width: 860px;
+  margin: 0;
+  text-align: left;
+}
+.hero.wg-hero-editorial .eyebrow {
+  display: inline-block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wg-yellow);
+  border-left: 6px solid var(--wg-yellow);
+  padding-left: 0.75rem;
+}
+.hero.wg-hero-editorial h1 {
+  font-size: clamp(2.6rem, 6.5vw, 4.6rem);
+  line-height: 1.05;
+  color: #FFFFFF !important;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.55);
+  margin: 1rem 0;
+}
+.hero.wg-hero-editorial p {
+  color: #FDF8EE !important;
+  font-size: 1.15rem;
+  max-width: 620px;
+  margin: 0 0 2rem;
+}
+.hero.wg-hero-editorial .hero-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.wg-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--wg-yellow) !important;
+  color: #111111 !important;
+  font-weight: 800;
+  padding: 1rem 2rem;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.wg-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent !important;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  padding: 1rem 2rem;
+  border: 2px solid #FFFFFF;
+  border-radius: 4px;
+  text-decoration: none;
+}
+.wg-photo-caption {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 238, 0.85);
+  margin-top: 1.5rem;
+}
+
+/* ---- Section headers: yellow rule, editorial style ---- */
+.section-header h2::after {
+  background: var(--wg-yellow) !important;
+  width: 64px !important;
+  height: 5px !important;
+}
+
+/* ---- Cards: white paper, thin rule, photo first ---- */
+.card {
+  background: var(--wg-paper-2) !important;
+  border: 1px solid var(--wg-line) !important;
+  box-shadow: 0 2px 10px rgba(11, 61, 46, 0.08) !important;
+  backdrop-filter: none !important;
+}
+.card:hover {
+  border-color: var(--wg-forest) !important;
+}
+.card-body h3, .card-body h2 {
+  color: var(--wg-ink) !important;
+}
+.card-body .badge {
+  border-radius: 2px;
+}
+
+/* ---- Honest impact block (replaces animated counters) ---- */
+.wg-impact {
+  background: var(--wg-forest);
+  color: #FDF8EE;
+  border-top: 6px solid var(--wg-yellow);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+.wg-impact h2 {
+  color: #FFFFFF !important;
+}
+.wg-impact-grid {
+  display: flex;
+  gap: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 1.5rem 0;
+}
+.wg-impact-item strong {
+  display: block;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 2.4rem;
+  color: var(--wg-yellow);
+}
+.wg-impact-item span {
+  color: #FDF8EE;
+  font-size: 0.9rem;
+}
+.wg-impact-note {
+  color: rgba(253, 248, 238, 0.85);
+  max-width: 640px;
+  margin: 0 auto;
+  font-size: 0.95rem;
+}
+
+/* ---- Notices: honest, plain, no fake checkout ---- */
+.wg-notice {
+  background: #FFF8D6;
+  border: 1px solid var(--wg-yellow);
+  border-left: 6px solid var(--wg-yellow);
+  padding: 1.25rem 1.5rem;
+  margin: 1.5rem 0;
+  color: var(--wg-ink);
+}
+.wg-notice p {
+  color: var(--wg-ink);
+  margin: 0 0 0.75rem;
+}
+.wg-notice .wg-btn-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.wg-mailto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--wg-forest);
+  color: #FFFFFF !important;
+  padding: 0.7rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ---- Sample photos on the scan page ---- */
+.wg-sample-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 1rem;
+}
+.wg-sample-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #FFFFFF;
+  border: 2px solid var(--wg-forest);
+  color: var(--wg-forest);
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.wg-scan-status {
+  margin-top: 1rem;
+  font-weight: 600;
+  color: var(--wg-forest);
+  min-height: 1.5em;
+}
+
+/* ---- Category illustration cards (no misleading photo) ---- */
+.wg-category-illustration {
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--wg-forest);
+  color: #FDF8EE;
+  font-weight: 700;
+}
+.wg-category-illustration i {
+  font-size: 2.2rem;
+  color: var(--wg-yellow);
+}
+.wg-category-illustration span {
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(253, 248, 238, 0.8);
+}
+
+/* ---- Forms, inputs, links ---- */
+a { color: var(--wg-forest); }
+input, select, textarea {
+  background: #FFFFFF !important;
+  color: var(--wg-ink) !important;
+  border: 1px solid var(--wg-line) !important;
+}
+:focus-visible {
+  outline: 3px solid var(--wg-yellow);
+  outline-offset: 2px;
+}
+
+/* ---- Dark mode: still editorial, deep forest instead of paper ---- */
+[data-theme="dark"] body {
+  background: #0B1F18 !important;
+  color: #F5F1E6 !important;
+}
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3, [data-theme="dark"] h4 {
+  color: #FDF8EE !important;
+}
+[data-theme="dark"] p, [data-theme="dark"] li, [data-theme="dark"] label {
+  color: rgba(245, 241, 230, 0.88) !important;
+}
+[data-theme="dark"] .card {
+  background: #143324 !important;
+  border-color: rgba(253, 248, 238, 0.18) !important;
+}
+[data-theme="dark"] .card-body h3, [data-theme="dark"] .card-body h2 {
+  color: #FDF8EE !important;
+}
+[data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea {
+  background: #0B1F18 !important;
+  color: #FDF8EE !important;
+  border-color: rgba(253, 248, 238, 0.25) !important;
+}
+[data-theme="dark"] .wg-notice {
+  background: #2A2600;
+  color: #FDF8EE;
+}
+[data-theme="dark"] .wg-notice p {
+  color: #FDF8EE;
+}
+[data-theme="dark"] .wg-sample-btn {
+  background: #143324;
+  color: #FDF8EE;
+}
+
+@media (max-width: 700px) {
+  .hero.wg-hero-editorial { min-height: 62vh; padding: 4rem 1.25rem 2.5rem; }
+  .wg-impact-grid { gap: 1.25rem; }
+}
