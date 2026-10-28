@@ -45,7 +45,12 @@
     var logoWrap = document.createElement('div');
     logoWrap.className = 'wg-dialog-logo';
     var logoImg = document.createElement('img');
-    logoImg.src = basePath() + 'assets/images/logo.png';
+    // 2026-10-28 fix: reuse the page header logo path. The old basePath()
+    // guessed '../' from the URL depth, which escapes the repo folder on
+    // GitHub Pages previews (/WildGuard-Rebuild-Preview/scan.html) and
+    // broke this dialog logo.
+    var headerLogo = document.querySelector('.logo-img');
+    logoImg.src = headerLogo ? headerLogo.getAttribute('src') : basePath() + 'assets/images/logo.png';
     logoImg.alt = 'WildGuard Society';
     logoWrap.appendChild(logoImg);
 

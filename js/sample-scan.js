@@ -27,7 +27,16 @@
         WildlifeScan.lastInputSource = { type: 'sample', name: name.toLowerCase() };
         WildlifeScan.showResultView();
         WildlifeScan.els.previewImg.onload = function () {
-          WildlifeScan.simulateScanAsync(WildlifeScan.els.previewImg.src);
+          try {
+            var r = WildlifeScan.simulateScanAsync(WildlifeScan.els.previewImg.src);
+            if (r && r.catch) {
+              r.catch(function () {
+                setStatus('That scan could not be completed. Please try another sample photo.');
+              });
+            }
+          } catch (e) {
+            setStatus('That scan could not be completed. Please try another sample photo.');
+          }
         };
         WildlifeScan.els.previewImg.onerror = function () {
           setStatus('That sample photo could not be loaded. Please try another one.');

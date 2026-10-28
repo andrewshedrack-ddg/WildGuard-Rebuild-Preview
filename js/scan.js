@@ -314,16 +314,16 @@ const WildlifeScan = {
         // Wikipedia/Wikimedia wildlife photos.
         if (typeof WildGuardAI !== "undefined") {
           WildGuardAI.init(this.tfModel);
+          // 2026-10-28 fix: do NOT auto-train on page load. Training up to
+          // 100 species (Wikipedia fetch + MobileNet embed each) hogs the
+          // same model/network the scan itself needs, so the first scan
+          // stalled for 90+ seconds with no result. A previously cached
+          // trained model is still used when present; otherwise the fast
+          // MobileNet + species-database path below identifies the photo.
           if (WildGuardAI.isReady()) {
             this.setModelStatus("model");
           } else {
-            this.setModelStatus("training");
-            WildGuardAI.train(this.speciesDB, (pct) => {
-              this.updateModelStatus(pct);
-            }).then(() => {
-              if (WildGuardAI.isReady()) this.setModelStatus("model");
-              else this.setModelStatus("ready-minimal");
-            });
+            this.setModelStatus("ready-minimal");
           }
         } else {
           this.setModelStatus("model");
@@ -1095,6 +1095,12 @@ const WildlifeScan = {
     this.currentResult = null;
     this.lastInputSource = null;
     this._sentToAdmin = false;
+    // 2026-10-28 fix: reset the status line too, or it stays stuck on
+    // "Analysing your photo..." after "Scan another".
+    if (this.els.loadingState) this.els.loadingState.style.display = "none";
+    if (this.els.loadingText) this.els.loadingText.textContent = "Ready to scan";
+    var wgStatus = document.getElementById("wgScanStatus");
+    if (wgStatus) wgStatus.textContent = "";
     if (window.speechSynthesis) window.speechSynthesis.cancel();
   },
 
@@ -1694,7 +1700,11 @@ const WildlifeScan = {
     // Enhanced browsing: when confidence is low, try multiple query variations
     // and combine results from multiple sources for better identification.
     const MIN_CONFIDENCE_FOR_ENHANCED_BROWSE = 60;
-    const needsEnhancedBrowse = confidence < MIN_CONFIDENCE_FOR_ENHANCED_BROWSE;
+    // 2026-10-28 fix: never gate the result on the research chain. It ran
+    // up to 3 iNaturalist + 2 Wikipedia + 2 GBIF queries in sequence
+    // before any result was shown, adding tens of seconds. The result
+    // below still enriches with Wikipedia/GBIF in parallel (8s cap each).
+    const needsEnhancedBrowse = false;
     let browseQueries = [];
 
     // Build query variations based on what we have
@@ -1815,10 +1825,11 @@ const WildlifeScan = {
 
     this.currentResult = { species, confidence, key: bestMatch, aiSource, iNat, detections };
 
-    // Real-world surroundings enrichment: location, geography, historic features,
-    // and nearby biological places (uses free, keyless APIs when online).
-    this.els.loadingText.textContent = "Reading the surrounding landscape...";
-    const geo = await this.enrichWithGeography();
+    // 2026-10-28 fix: do not gate the result on geolocation. It waited
+    // up to 9s for a location prompt plus three more API calls, and the
+    // surroundings section already falls back to the species habitat when
+    // no location is available (see surroundingsBodyHtml).
+    const geo = null;
     this.currentResult.geo = geo;
 
     // Parallel real-time + wildlife-library enrichment: live weather at the

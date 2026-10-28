@@ -151,10 +151,19 @@
   function updateThemeIcon(theme, toggle) {
     var btn = toggle || query('#theme-toggle');
     if (!btn) return;
+    var label = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
     var icon = btn.querySelector('i');
-    if (!icon) return;
-    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('title', label);
+    var span = btn.querySelector('.theme-label');
+    if (!span) {
+      span = document.createElement('span');
+      span.className = 'theme-label';
+      span.style.cssText = 'margin-left:0.4rem;font-size:0.8rem;font-weight:700;';
+      btn.appendChild(span);
+    }
+    span.textContent = theme === 'dark' ? 'Light' : 'Dark';
   }
 
   /* ── Streaming Carousel (Chester Zoo inspired) ── */
