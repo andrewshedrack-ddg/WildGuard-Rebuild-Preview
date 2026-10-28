@@ -334,3 +334,27 @@ input, select, textarea {
   .hero.wg-hero-editorial { min-height: 62vh; padding: 4rem 1.25rem 2.5rem; }
   .wg-impact-grid { gap: 1.25rem; }
 }
+
+/* ---- 2026-10-28 preview fixes ---- */
+/* Section headers were white-on-cream: old style.css sets
+   .section-header h2 to white, beating the generic h2 rule. */
+.section-header h2, .section-header h3 {
+  color: var(--wg-ink) !important;
+}
+.section-header p {
+  color: var(--wg-ink-soft) !important;
+}
+[data-theme="dark"] .section-header h2, [data-theme="dark"] .section-header h3 {
+  color: #FDF8EE !important;
+}
+[data-theme="dark"] .section-header p {
+  color: rgba(245, 241, 230, 0.88) !important;
+}
+/* Card headings are links: the link colour, not the h3 colour, decided
+   readability, and it stayed dark in dark mode (dark-on-dark). */
+.card-body h3 a, .card-body h2 a {
+  color: var(--wg-ink) !important;
+}
+[data-theme="dark"] .card-body h3 a, [data-theme="dark"] .card-body h2 a {
+  color: #FDF8EE !important;
+}
