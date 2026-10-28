@@ -24,6 +24,20 @@
         }
         var d = window.WGScanText || {};
         setStatus(d.scanStatusAnalysing || 'Analysing your photo...');
+        // 2026-10-28 safety net: whatever the model does, the scan may
+        // never spin forever. If no result appears within 30 seconds,
+        // stop the spinner and say so plainly.
+        if (window._wgSampleTimer) { clearTimeout(window._wgSampleTimer); }
+        window._wgSampleTimer = setTimeout(function () {
+          var loading = document.getElementById('loadingState');
+          var result = document.getElementById('resultState');
+          var stillSpinning = loading && loading.style.display !== 'none' &&
+            (!result || result.style.display === 'none');
+          if (stillSpinning) {
+            loading.style.display = 'none';
+            setStatus('Scan timed out after 30 seconds with no result. Please close this tab, reopen the scan page, and try again.');
+          }
+        }, 30000);
         WildlifeScan.lastInputSource = { type: 'sample', name: name.toLowerCase() };
         WildlifeScan.showResultView();
         WildlifeScan.els.previewImg.onload = function () {
