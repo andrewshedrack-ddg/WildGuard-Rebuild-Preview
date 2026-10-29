@@ -1,6 +1,6 @@
 // Service Worker for WildGuard Society - Offline support
 // Served at the root of wildguard.live (2026-10-28 rebuild).
-const CACHE_NAME = 'wildguard-v7';
+const CACHE_NAME = 'wildguard-v8';
 const URLS_TO_CACHE = [
   '/',
   '/index.html',
