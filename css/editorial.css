@@ -358,3 +358,93 @@ input, select, textarea {
 [data-theme="dark"] .card-body h3 a, [data-theme="dark"] .card-body h2 a {
   color: #FDF8EE !important;
 }
+
+/* ---- 2026-10-29 design clean-up: cards, colour, spacing ---- */
+/* Card photos: one consistent frame, no stretched or uneven boxes. */
+.card-image {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--wg-forest);
+}
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* Category illustrations use the same frame as photos. */
+.wg-category-illustration {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--wg-forest);
+  color: #FDF8EE;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.wg-category-illustration i {
+  font-size: 2rem;
+  color: var(--wg-yellow);
+}
+/* Cards: clean paper, one border, readable ink text, even grid. */
+.card-grid {
+  gap: 1.5rem;
+  align-items: stretch;
+}
+.card {
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+.card-body {
+  padding: 1.25rem 1.25rem 1.5rem !important;
+}
+.card-body h3, .card-body h2 {
+  color: var(--wg-ink) !important;
+  margin-bottom: 0.5rem;
+}
+.card-body p {
+  color: var(--wg-ink-soft) !important;
+  line-height: 1.6;
+}
+.card-body h3 a, .card-body h2 a {
+  color: var(--wg-ink) !important;
+  text-decoration: none;
+}
+.card-body h3 a:hover, .card-body h2 a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--wg-yellow);
+  text-decoration-thickness: 3px;
+}
+/* Sections: clear separation on the cream paper, no text floating
+   over busy photos. */
+.section, section.content-overlay {
+  padding-top: 3rem !important;
+  padding-bottom: 3rem !important;
+}
+/* Scan page: centred, roomy, one clear action area. */
+.scan-container, .scan-page .container {
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.wg-sample-btn {
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  font-weight: 700;
+}
+.wg-scan-debug {
+  border: 1px solid var(--wg-line);
+}
+[data-theme="dark"] .wg-category-illustration {
+  background: #143324;
+}
+[data-theme="dark"] .card-body h3 a, [data-theme="dark"] .card-body h2 a {
+  color: #FDF8EE !important;
+}
