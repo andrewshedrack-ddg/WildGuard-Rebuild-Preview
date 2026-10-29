@@ -448,3 +448,32 @@ input, select, textarea {
 [data-theme="dark"] .card-body h3 a, [data-theme="dark"] .card-body h2 a {
   color: #FDF8EE !important;
 }
+
+/* ---- 2026-10-29 marketability pass ---- */
+/* Yellow rule under every section heading, NatGeo-style */
+.section-header h2::after {
+  content: "";
+  display: block;
+  width: 64px;
+  height: 5px;
+  background: var(--wg-yellow);
+  margin-top: 0.6rem;
+}
+/* Card hover: gentle lift, no flash */
+.card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(11, 61, 46, 0.18); }
+/* Hero buttons: clear primary, readable secondary on hover */
+.wg-btn-primary:hover { background: #E6B800 !important; }
+.wg-btn-secondary:hover { background: #FFFFFF !important; color: #0B3D2E !important; }
+/* Impact numbers: big serif, honest and proud */
+.wg-impact-item strong { font-family: Georgia, serif; font-size: 2.6rem; color: var(--wg-ink); }
+.wg-impact-item span { color: var(--wg-ink-soft); }
+/* Footer tagline in cream, links breathing room */
+.site-footer .footer-brand p { color: #FDF8EE; line-height: 1.6; }
+/* Mobile: hero buttons stack full-width, cards single column */
+@media (max-width: 700px) {
+  .hero.wg-hero-editorial .hero-actions .wg-btn-primary,
+  .hero.wg-hero-editorial .hero-actions .wg-btn-secondary { width: 100%; justify-content: center; }
+  .card-grid { grid-template-columns: 1fr !important; }
+  .wg-impact-grid { grid-template-columns: 1fr 1fr !important; }
+}
