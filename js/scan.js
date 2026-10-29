@@ -332,6 +332,7 @@ const WildlifeScan = {
         }
       } catch (err) {
         console.warn("Model load failed:", err);
+        this._modelFailed = true;
         this._dbgStart = Date.now();
         this.dbg("INIT: MobileNet load FAILED: " + (err && err.message ? err.message : err));
         this.setModelStatus("unavailable");
@@ -664,7 +665,7 @@ const WildlifeScan = {
         clearTimeout(timer);
         if (!resp.ok) continue;
         const j = await resp.json();
-        if (j && j.extract && !j.type) {
+        if (j && j.extract && j.type !== "disambiguation") {
           return {
             title: j.title || c,
             extract: String(j.extract).slice(0, 600),
@@ -1478,16 +1479,40 @@ const WildlifeScan = {
   // Uses whole-word matching and prefers the longest matching pattern so that
   // generic words (e.g. "ant") never steal matches from specific ones (e.g. "tiger").
   matchSpeciesKey(labelLower) {
+    // 2026-10-29 accuracy fix: the species database contains auto-generated
+    // *_mammal entries with invented facts (e.g. "Elephant elephantius",
+    // "Least Concern", "Wetlands", "Insectivore" for an elephant). Prefer
+    // curated entries first, so a plain "elephant" label maps to the real
+    // African Bush Elephant instead of the fake auto entry.
+    const isAuto = (key) => String(key).endsWith("_mammal");
     let best = null;
     let bestLen = 0;
+    for (const [pattern, key] of Object.entries(this.labelToSpecies)) {
+      if (!isAuto(key) && this.wordMatch(labelLower, pattern) && this.speciesDB[key]) {
+        if (pattern.length > bestLen) { best = key; bestLen = pattern.length; }
+      }
+    }
+    if (best) return best;
+    for (const key of Object.keys(this.speciesDB)) {
+      if (isAuto(key)) continue;
+      const item = this.speciesDB[key];
+      for (const tag of item.tags) {
+        if (tag && this.wordMatch(labelLower, tag) && tag.length > bestLen) {
+          best = key;
+          bestLen = tag.length;
+        }
+      }
+    }
+    if (best) return best;
+    // Fallback: original behaviour over all entries, including auto ones.
+    best = null;
+    bestLen = 0;
     for (const [pattern, key] of Object.entries(this.labelToSpecies)) {
       if (this.wordMatch(labelLower, pattern) && this.speciesDB[key]) {
         if (pattern.length > bestLen) { best = key; bestLen = pattern.length; }
       }
     }
     if (best) return best;
-    best = null;
-    bestLen = 0;
     for (const key of Object.keys(this.speciesDB)) {
       const item = this.speciesDB[key];
       for (const tag of item.tags) {
@@ -1894,6 +1919,23 @@ const WildlifeScan = {
     const geo = null;
     this.currentResult.geo = geo;
 
+    // 2026-10-29 fix: show the identification NOW, before any enrichment.
+    // Previously the result only appeared after Wikipedia, GBIF, hashing
+    // and the full field-guide book had all finished, so any slow or
+    // failing step after the match left the visitor staring at a spinner
+    // even though the species was already known. The full guide below
+    // still replaces this card when it is ready.
+    this.dbg("RESULT: showing identification now, enrichment follows");
+    this.els.loadingState.style.display = "none";
+    this.els.resultState.style.display = "block";
+    this.els.resultCategory.textContent = species.category;
+    this.els.resultTitle.textContent = species.name;
+    this.els.resultScientificName.textContent = species.scientificName;
+    this.els.resultStatusBadge.className = "status-badge " + species.statusClass;
+    this.els.resultStatusBadge.textContent = species.status;
+    this.els.resultConfidence.innerHTML = '<span class="confidence-text">' + confidence + '% AI confidence</span>';
+    this.els.resultDetails.innerHTML = '<div class="detail-section"><h4>Identified</h4><p>' + species.desc + '</p><p>Habitat: ' + species.habitat + '</p><p>Full field guide loading below.</p></div>';
+
     // Parallel real-time + wildlife-library enrichment: live weather at the
     // scan location, recent local sightings, historic background, and GBIF
     // authority data. All free, keyless APIs that never throw.
@@ -1909,7 +1951,9 @@ const WildlifeScan = {
       this.enrichWithWikipediaExtract(species.scientificName || species.name).then(function(h) { if (h) this.currentResult.history = h; }.bind(this)).catch(() => {}),
       this.enrichWithGBIF(species.scientificName || species.name).then(function(g) { if (g) this.currentResult.gbif = g; }.bind(this)).catch(() => {})
     );
-    await Promise.all(liveJobs);
+    this.dbg("ENRICH: start (Wikipedia + GBIF, 10s cap)");
+    await this.withTimeout(Promise.all(liveJobs), 10000, null);
+    this.dbg("ENRICH: done");
 
     // Reflect the multi-source live enrichment in the AI source badge.
     const liveParts = [];
@@ -1961,11 +2005,14 @@ const WildlifeScan = {
       if (badgeContainer.contains(badgeContainer.lastElementChild)) {
         // Insert before the last detail section
         const insertPoint = badgeContainer.lastElementChild;
-        resultState.insertBefore(document.createElement('div').innerHTML = aiSourceDisplay, insertPoint);
+        var badgeEl = document.createElement('div');
+        badgeEl.innerHTML = aiSourceDisplay;
+        resultState.insertBefore(badgeEl, insertPoint);
       } else {
         resultState.insertAdjacentHTML('beforeend', aiSourceDisplay);
       }
     }
+    this.dbg("RENDER: drawing full field guide");
     // Small yield to let UI update
     await new Promise(r => setTimeout(r, 50));
 

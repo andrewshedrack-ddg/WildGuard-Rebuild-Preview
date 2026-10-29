@@ -22,6 +22,18 @@
           setStatus('Scanner is still loading. Please wait a moment, then try again.');
           return;
         }
+        // 2026-10-29 fix: never start a scan before the AI model has
+        // loaded. Previously an early click produced a confident-looking
+        // "couldn't identify" with no AI predictions at all (elephant
+        // sample, tfModel=false), which looked like a broken scanner.
+        if (WildlifeScan._modelFailed) {
+          setStatus('The AI model could not load. Please reload the page and check your connection, then try again.');
+          return;
+        }
+        if (!WildlifeScan.tfModel) {
+          setStatus('AI model still loading. Please wait a few seconds, then try again.');
+          return;
+        }
         var d = window.WGScanText || {};
         setStatus(d.scanStatusAnalysing || 'Analysing your photo...');
         // 2026-10-28 safety net: whatever the model does, the scan may
