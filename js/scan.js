@@ -1749,6 +1749,27 @@ const WildlifeScan = {
     }
 
     this.dbg("MATCH: bestMatch=" + bestMatch + " detections=" + detections.length + " primary=" + (primary ? primary.key : "none"));
+    // 2026-10-29 fix, round 2: show the identification RIGHT HERE, before
+    // any other post-match code runs. Two retests proved the log stops at
+    // MATCH and never reaches the later display step, so the display must
+    // not depend on confidence, query, enrichment or guide code at all.
+    // If this quick display itself fails, the error is logged visibly.
+    try {
+      var quickSpecies = this.speciesDB[bestMatch];
+      var quickConf = (primary && primary.confidence) || aiConfidence || 60;
+      this.dbg("RESULT: showing identification now, enrichment follows");
+      this.els.loadingState.style.display = "none";
+      this.els.resultState.style.display = "block";
+      this.els.resultCategory.textContent = quickSpecies.category;
+      this.els.resultTitle.textContent = quickSpecies.name;
+      this.els.resultScientificName.textContent = quickSpecies.scientificName;
+      this.els.resultStatusBadge.className = "status-badge " + quickSpecies.statusClass;
+      this.els.resultStatusBadge.textContent = quickSpecies.status;
+      this.els.resultConfidence.innerHTML = '<span class="confidence-text">' + quickConf + '% AI confidence</span>';
+      this.els.resultDetails.innerHTML = '<div class="detail-section"><h4>Identified</h4><p>' + quickSpecies.desc + '</p><p>Habitat: ' + quickSpecies.habitat + '</p><p>Full field guide loading below.</p></div>';
+    } catch (e) {
+      this.dbg("QUICK RESULT ERROR: " + (e && e.message ? e.message : e));
+    }
     const species = this.speciesDB[bestMatch];
     // Honest confidence: use actual model scores, not fabricated randomness.
     let confidence;
